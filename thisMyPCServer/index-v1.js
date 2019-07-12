@@ -17,7 +17,17 @@ const validator = require('validator');
  */
 // logger
 const logger = require('./components/logger');
+
+
+
+/**
+ * User Resources
+ */
+const {userResources} = require('./components/resources/user.resources');
 // MongoDB server connection
+
+
+
 mongoose.connect(`mongodb://${db.user}:${db.password}@${db.host}/${db.dbName}`, {
   useNewUrlParser: true,
 });
@@ -53,7 +63,10 @@ const PC = require('./models/pc');
 const UserAndPC = require('./models/userAndPC');
 // pc and PC Owner  module
 const PcOwner = require('./models/PCOwner');
+
+
 app.use(bodyParser.json());
+app.disable('x-powered-by');
 app.use(fileUpload());
 // REST API output header
 app.use(function(req, res, next) {
@@ -61,6 +74,8 @@ app.use(function(req, res, next) {
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept ,token ,uid');
   next();
 });
+
+
 // server port ex-5000
 http.listen(process.env.PORT || config.port);
 logger.log(`Sever start on Port ${config.port}`);
@@ -482,6 +497,68 @@ app.post('/auth', async function(req, res) {
     res.json(respond(false, 'Invalid User', null));
   }
 });
+
+
+/**
+ * REST API V1
+ */
+
+
+/**
+ * API main end point
+ */
+app.get('/api/', async function(req, res) {
+
+
+    res.status(200).json(respond(true, 'REST API working', null));
+
+});
+
+
+/**
+ *  API variation end point
+ */
+app.get('/api/v1/', async function(req, res) {
+
+  res.status(200).json(respond(true, 'REST API working', null));
+  
+});
+
+
+
+/**
+* User information  
+*
+* @param  {json} req
+* req : Request
+* req->
+*
+* @param  {json} res
+* res:Respond
+* res<-
+*/
+app.get('/api/v1/user/:userID', async function(req, res) {
+// user ID
+  let userID = req.params.userID;
+// user Information 
+let userInformation = await User.getUser(userID);
+
+if(userInformation){
+// user resources 
+  let user =  userResources(userInformation);
+  res.status(200).json(respond(true, 'User Information', user));
+}else{
+
+  res.status(400).json(respond(fail, 'Invalid User Information', null));
+}
+
+
+
+});
+
+
+
+
 io.on('connection', function(socket) {
   // TODO this user  login from app need to add few   function to  it
   socket.on('loginPage', function() {});
